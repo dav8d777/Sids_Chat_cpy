@@ -13,15 +13,18 @@ stss = st.session_state
 # stss.newChatSwitch = False
 userID = "sidjnsn66"
 chatModified = False
-DEBUG = True
+chatDict = {}
+DEBUG = False
 
 
 # TODO New chat button event handler.  Call newchat
 def NewChat():
     st.write("NewChat fn is running")
     stss.newChatSwitch = True
-    if "messages" in st.session_state:
-        del st.session_state.messages[1,]
+    if len(stss.messages) > 1:
+        st.session_state.messages = [
+            SystemMessage(content="You are a helpful assistant.")
+        ]  # clear old chat messages if any
 
 
 def NewUserSim():
@@ -50,7 +53,7 @@ def Init():
         st.write("Init fn is running")
     openai.api_key = st.secrets["OPENAI_API_KEY"]
     st.session_state.messages = [SystemMessage(content="You are a helpful assistant.")]
-    stss.chatDict = {}
+    # stss.chatDict = {}
 
 
 # def tempChange(userID, SetTemp):
@@ -63,6 +66,16 @@ def tempSliderChange():
     update_session_state_by_user(userID, "Temperature", stss.tempSlider)
 
 
+def buildChatDict(messages):
+    for i, msg in enumerate(messages[1:]):
+        if i % 2 == 0:
+            # print( i + " - " + msg)
+            chatDict.update({str(i) + "_user": msg.content})
+        else:
+            chatDict.update({str(i) + "_ai": msg.content})
+    return chatDict
+
+
 # NewUserSim()  # TODO:  Take out
 
 # Test for first time user and init if so
@@ -73,7 +86,7 @@ if getUserState(userID) == None:  # no state record exists, so this is a new use
     stss["tempSlider"] = 0.0  # initial value of temp slider
     stss.newChatSwitch = True  # TODO: is this right?
     save_newUserState(userID, stss.tempSlider)
-else:
+else:  # Test for new session
     if "messages" not in st.session_state:  # new session/startup
         if DEBUG:
             st.write("Not new user, but new session detected.  Calling Init().")
@@ -93,8 +106,6 @@ else:
 
 # setup streamlit page
 # st.set_page_config(page_title="Your own ChatGPT", page_icon="🤖")
-
-chat = ChatOpenAI(temperature=stss.tempSlider)
 
 # st.header("Your own ChatGPT 🤖")
 
@@ -131,6 +142,7 @@ with st.sidebar:
     #     "max_length", min_value=64, max_value=4096, value=512, step=8
     # )
 
+chat = ChatOpenAI(temperature=stss.tempSlider)
 
 # User-provided prompt
 if prompt := st.chat_input("Enter your message: "):  # string
@@ -158,15 +170,9 @@ messages = st.session_state.get("messages", [])  # this is a list
 for i, msg in enumerate(messages[1:]):
     if i % 2 == 0:
         message(msg.content, is_user=True, key=str(i) + "_user")
-        # stss.chatDict.update({str(i) + "_user": msg.content})
-        # stss.chatDict[str(i) + "_user"]
     else:
         message(msg.content, is_user=False, key=str(i) + "_ai")
-        # stss.chatDict.update({str(i) + "_ai": msg.content})
-        # stss.chatDict[str(i) + "_ai"]
 
-
-# st.write("Messages length = " + str(len(messages)))
 
 if DEBUG:
     st.write(
@@ -180,7 +186,8 @@ if DEBUG:
 if (
     stss.newChatSwitch == True and len(messages) > 1
 ):  # it's a new chat and one chat turn has occurred
-    st.write("newChatSwitchcode is running")
+    if DEBUG:
+        st.write("newChatSwitchcode is running")
     chatID = str(dt.now())
     chatTitle = chat(
         messages[1:]
@@ -192,16 +199,12 @@ if (
     )
     stss.chatTitle = chatTitle.content
     stss.chatID = chatID
-    stss.newChatSwitch = False
-    # st.write(type(chatTitle.content))
-    # st.write(chatTitle.content)
 
-    # st.write("Saving new chat to database.")
-    # try:
-    #     save_new_chat(chatID, chatTitle.content, prompt)
-    #     save_new_chat(chatID, chatTitle.content, CurrContent)
-    # except:
-    #     st.write("Error occurred in save_new_chat")
+    chatDict = buildChatDict(messages)
+
+    newChatSaveResult = save_new_chat(userID, stss.chatID, stss.chatTitle, chatDict)
+    stss.newChatSwitch = False
+    chatModified = False
 
 if DEBUG:
     st.write("At end of run, state looks like this:")
@@ -209,31 +212,24 @@ if DEBUG:
         st.write("------  " + str(k) + "  = " + str(st.session_state[k]))
 
 if chatModified:
-    # Update messages to db
-    # convert to dict
-    chatDict = {}
-    for i, msg in enumerate(messages[1:]):
-        if i % 2 == 0:
-            # print( i + " - " + msg)
-            chatDict.update({str(i) + "_user": msg.content})
-        else:
-            chatDict.update({str(i) + "_ai": msg.content})
+    chatDict = buildChatDict(messages)
 
     # save to db
-    upsertResult = upsertChatContent(stss.chatID, stss.chatTitle, chatDict)
+    upsertResult = upsertChatContent(stss.chatID, chatDict)
     st.write("The id of the record upserted is: " + str(upsertResult.upserted_id))
     st.write("Number of records modified = " + str(upsertResult.modified_count))
     chatModified = False
+
 # Checklist
 #    change temperature variable names   X
 #    make new user work correctly
 #          Make it run a new chat including saving it to db X
 #               Change message handling and saving:  x
 #               Convert messages to dict using dict.update.  init the dict first.  x
-#               Create the chat record at title creation time with chatid, title, and userid
+#               Create the chat record at title creation time with chatid, title, and userid x
 #               Update the dict on subsequent turns or just rewrite it?  x
-#       persist stss.newChatSwitch??
-#    make new chat work correctly
+#       persist stss.newChatSwitch??  Dont think this is needed
+#    make new chat work correctly x
 #    make new session work correctly
 #        retrieve state vars, Chat Titles, and latest chat messages
 #        what is 1_ai and 0_user in state?

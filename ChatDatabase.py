@@ -81,9 +81,14 @@ def upsertChatContent(chat_id, chatDict):
     return db.chats.update_one(query, {"$set": {"chat_dict": chatDict}}, upsert=True)
 
 
-def save_new_chat(chatID, chatTitle, chatContent):
+def save_new_chat(userID, chatID, chatTitle, chatContent):
     return db.chats.insert_one(
-        {"ChatID": chatID, "ChatTitle": chatTitle, "Content": chatContent}
+        {
+            "UserID": userID,
+            "ChatID": chatID,
+            "ChatTitle": chatTitle,
+            "Content": chatContent,
+        }
     )
 
 
