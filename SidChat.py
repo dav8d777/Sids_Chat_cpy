@@ -208,30 +208,12 @@ if chatModified:
     chatModified = False
 
 # Checklist
-#    change temperature variable names   X
-#    make new user work correctly
-#          Make it run a new chat including saving it to db X
-#               Change message handling and saving:  x
-#               Convert messages to dict using dict.update.  init the dict first.  x
-#               Create the chat record at title creation time with chatid, title, and userid x
-#               Update the dict on subsequent turns or just rewrite it?  x
-#       persist stss.newChatSwitch??  Dont think this is needed
-#    make new chat work correctly x
 #    make new session work correctly
 #        retrieve state vars, Chat Titles, and latest chat messages
 #        what is 1_ai and 0_user in state?
 #    create chat title list on sidebar
 
-
-# TODO store new message into db with id
-
 # TODO's:
-# add newchat ability
-# New Chat button
-# Clears the session and screen
-# New question and response are used to gen a chat title, which is saved as or with the id.
-# Each chat has an id that is maintained in the active session and stored in the db
-# Each chat has a title associated with the id, or that is the ID - title gen'd from chat model
 # all sessions are loaded from db on startup?????
 
 # TODO's FEATURES:
