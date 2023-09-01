@@ -56,12 +56,6 @@ def Init():
     # stss.chatDict = {}
 
 
-# def tempChange(userID, SetTemp):
-#     #  st.write("tempChange fn is running")
-#     update_session_state_by_user(userID, "Temperature", SetTemp)
-#     stss.tempSlider = SetTemp
-
-
 def tempSliderChange():
     update_session_state_by_user(userID, "Temperature", stss.tempSlider)
 
@@ -133,8 +127,6 @@ with st.sidebar:
         key="tempSlider",
     )
 
-    # st.write("Type of temp slider is:  " + str(type(stss["tempSlider"])))
-
     # top_p = st.sidebar.slider(
     #     "top_p", min_value=0.01, max_value=1.0, value=0.9, step=0.01
     # )
@@ -150,23 +142,17 @@ if prompt := st.chat_input("Enter your message: "):  # string
     # with st.chat_message("user"):
     #     st.write(prompt)
     with st.spinner("Thinking..."):
-        # st.write(type(st.session_state.messages))
-        # st.session_state.messages
         response = chat(st.session_state.messages)
         st.session_state.messages.append(AIMessage(content=response.content))
         CurrContent = response.content
         chatModified = True
-        # if stss.newChatSwitch != True:
-        #     save_new_chat(stss.chatID, stss.chatTitle.content, prompt)
-        #     save_new_chat(stss.chatID, stss.chatTitle.content, CurrContent)
 
 
 # display message history
 if DEBUG:
     st.write("About to write messages out to screen.")
 messages = st.session_state.get("messages", [])  # this is a list
-# messages
-# st.write(type(messages))
+
 for i, msg in enumerate(messages[1:]):
     if i % 2 == 0:
         message(msg.content, is_user=True, key=str(i) + "_user")
@@ -216,8 +202,9 @@ if chatModified:
 
     # save to db
     upsertResult = upsertChatContent(stss.chatID, chatDict)
-    st.write("The id of the record upserted is: " + str(upsertResult.upserted_id))
-    st.write("Number of records modified = " + str(upsertResult.modified_count))
+    if DEBUG:
+        st.write("The id of the record upserted is: " + str(upsertResult.upserted_id))
+        st.write("Number of records modified = " + str(upsertResult.modified_count))
     chatModified = False
 
 # Checklist
