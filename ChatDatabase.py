@@ -72,8 +72,10 @@ def get_latest_ChatRecord():
 
 
 # Get all Chat Titles and datetime keys for sorting
-def get_all_titles():
-    return db.Chats.find({}, {"ChatID": 1, "ChatTitle": 1})
+def get_all_titles(userID):
+    return list(
+        db.chats.find({"UserID": userID}, {"_id": 0, "ChatID": 1, "ChatTitle": 1})
+    )
 
 
 # result = get_all_chat_data()

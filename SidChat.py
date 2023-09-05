@@ -10,8 +10,8 @@ from langchain.schema import SystemMessage, HumanMessage, AIMessage
 from ChatDatabase import *
 
 stss = st.session_state
-# stss.newChatSwitch = False
-userID = "sidjnsn66"
+stss.newChatSwitch = False  # TODO:Take this out
+stss.userID = "sidjnsn66"  # TODO Temporary
 chatModified = False
 chatDict = {}
 DEBUG = False
@@ -30,7 +30,7 @@ def NewChat():
 def NewUserSim():
     if DEBUG:
         st.write("NewUserSim fn is running")
-    delete_user_state(userID)
+    delete_user_state(stss.userID)
     delete_all_chats()
     if DEBUG:
         st.write("Values currently in session_state:")
@@ -57,7 +57,7 @@ def Init():
 
 
 def tempSliderChange():
-    update_session_state_by_user(userID, "Temperature", stss.tempSlider)
+    update_session_state_by_user(stss.userID, "Temperature", stss.tempSlider)
 
 
 def buildChatDict(messages):
@@ -73,20 +73,25 @@ def buildChatDict(messages):
 # NewUserSim()  # TODO:  Take out
 
 # Test for first time user and init if so
-if getUserState(userID) == None:  # no state record exists, so this is a new user.
+if getUserState(stss.userID) == None:  # no state record exists, so this is a new user.
     if DEBUG:
         st.write("First-time user detected and is being set up.")
     Init()
     stss["tempSlider"] = 0.0  # initial value of temp slider
     stss.newChatSwitch = True  # TODO: is this right?
-    save_newUserState(userID, stss.tempSlider)
+    save_newUserState(stss.userID, stss.tempSlider)
 else:  # Test for new session
     if "messages" not in st.session_state:  # new session/startup
         if DEBUG:
             st.write("Not new user, but new session detected.  Calling Init().")
         # TODO: Retrieve state and messages
-        getResult = getUserState(userID)  # pull in state
+        getResult = getUserState(stss.userID)  # pull in state
         stss.tempSlider = getResult["Temperature"]
+        stss.userID = getResult["UserID"]
+        docsList = get_all_titles(stss.userID)
+        titlesList = []
+        for doc in docsList:
+            titlesList.append(doc["ChatTitle"])
         Init()
 
 
@@ -110,8 +115,8 @@ with st.sidebar:
     btnNewUserReturn = st.button("New User", on_click=NewUserSim)
     btnNewUserSession = st.button("New Session", on_click=NewSessionSim)
 
-    titles = ["Title1", "Title2", "Title3", "Title4", "Title5"]
-    for title in titles:
+    # titlesList = ["Title1", "Title2", "Title3", "Title4", "Title5"]
+    for title in titlesList:
         title
 
     # TODO Put message hx here, individually selectable, and in historical order
@@ -188,7 +193,9 @@ if (
 
     chatDict = buildChatDict(messages)
 
-    newChatSaveResult = save_new_chat(userID, stss.chatID, stss.chatTitle, chatDict)
+    newChatSaveResult = save_new_chat(
+        stss.userID, stss.chatID, stss.chatTitle, chatDict
+    )
     stss.newChatSwitch = False
     chatModified = False
 
