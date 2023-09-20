@@ -48,11 +48,11 @@ def update_session_state_by_user(userID, fieldName, newVal):  ##TODO finish this
     return db.ChatState.update_one(query, new_value)
 
 
-############################## Persist messages
+############################## Persist chat content and title
 
 
 def upsertChatContent(chat_id, chatDict):
-    query = {"ChatID": "chat_id"}
+    query = {"ChatID": chat_id}
     return db.chats.update_one(query, {"$set": {"chat_dict": chatDict}}, upsert=True)
 
 
@@ -67,8 +67,9 @@ def save_new_chat(userID, chatID, chatTitle, chatContent):
     )
 
 
-def get_latest_ChatRecord():
-    return db.chats.find_one(sort=[("_id", 1)])
+# TODO Retrieve latest chat for user
+def get_latest_ChatRecord(userID):
+    return db.chats.find_one({"UserID": userID}, sort=[("_id", 1)])
 
 
 # Get all Chat Titles and datetime keys for sorting
@@ -78,6 +79,7 @@ def get_all_titles(userID):
     )
 
 
+# EX:
 # result = get_all_chat_data()
 # for i in result:
 #     print(i)
@@ -88,7 +90,7 @@ def get_all_chat_data():
     return db.chats.find({}, {"ChatID": 1, "ChatTitle": 1, "Content": 1})
 
 
-# example: update chat title by key
+# EX: update chat title by key
 # result = update_chat_title_by_key("64d990cda68dad84b2b65f90", "My updated title")
 # print(result)
 
@@ -100,7 +102,7 @@ def update_chat_title_by_key(chat_key, new_title):
     return db.chats.update_one(query, new_value)
 
 
-# example: update chat title by ChatID
+# EX: update chat title by ChatID
 #   result = update_chat_title_by_chatID("08152023 0923", "My updated title")
 #   print(result)
 
@@ -112,7 +114,7 @@ def update_chat_title_by_chatID(chat_id, new_title):
     return db.chats.update_one(query, new_value)
 
 
-# delete a chat
+# EX:  delete a chat
 #   chat_key = "64d990cda68dad84b2b65f90"
 #   delete_chat_by_key(ChatKey)
 
