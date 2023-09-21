@@ -13,7 +13,7 @@ from ChatDatabase import *
 # Init temp vars
 stss = st.session_state
 chatModified = False
-DEBUG = True
+DEBUG = False
 
 
 def NewChat():
@@ -225,7 +225,6 @@ if (
     )
     stss.chatTitle = chatTitle.content
     stss.titlesList.append(stss.chatTitle)
-    st.experimental_rerun
 
     buildChatDict(messages)
 
@@ -234,6 +233,7 @@ if (
     )
     stss.newChatSwitch = False
     chatModified = False
+    st.experimental_rerun()  # force sidebar to update with new chat title
 
 if DEBUG:
     st.write("At end of run, state looks like this:")
@@ -250,6 +250,7 @@ if chatModified:
         st.write("Number of records modified = " + str(upsertResult.modified_count))
     # chatModified = False
     # NewSession = False
+
 
 # Checklist
 #    make new session work correctly
