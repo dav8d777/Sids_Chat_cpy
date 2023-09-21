@@ -145,8 +145,8 @@ with st.sidebar:
     st.title("Sid's ChatGPT Clone")
 
     btnNewChatReturn = st.button("New Chat", on_click=NewChat)
-    btnNewUserReturn = st.button("New User", on_click=NewUserSim)
-    btnNewUserSession = st.button("New Session", on_click=NewSessionSim)
+    # btnNewUserReturn = st.button("New User", on_click=NewUserSim)
+    # btnNewUserSession = st.button("New Session", on_click=NewSessionSim)
 
     # titlesList = ["Title1", "Title2", "Title3", "Title4", "Title5"]
     for title in stss.titlesList:
