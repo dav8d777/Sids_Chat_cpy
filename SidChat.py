@@ -13,17 +13,17 @@ from ChatDatabase import *
 # Init temp vars
 stss = st.session_state
 chatModified = False
-DEBUG = False
+DEBUG = True
 
 
-# TODO New chat button event handler.  Call newchat
 def NewChat():
     st.write("NewChat fn is running")
     stss.newChatSwitch = True
-    st.session_state.messages = [
-        SystemMessage(content="You are a helpful assistant.")
-    ]  # clear old chat messages if any
+    if "messages" in st.session_state:
+        del stss["messages"]  # clear old chat messages if any
+    st.session_state.messages = [SystemMessage(content="You are a helpful assistant.")]
     stss.chatID = str(dt.now())
+    stss.chatDict = {}
 
 
 def NewUserSim():
@@ -72,13 +72,13 @@ def buildChatDict(messages):  # TODO Rename to APPEND
 
 
 # only called when messages does not exist and chatDict has been retrieved
-def ExtractChatData(chatDict):
+def ExtractChatData(RetrievedChat):
     stss.messages = []
     stss.messages.append(
         SystemMessage(content="You are a helpful assistant.", additional_kwargs={})
     )
 
-    for i, (k, v) in enumerate(chatDict["Content"].items()):
+    for i, (k, v) in enumerate(RetrievedChat["Content"].items()):
         if i % 2 == 0:
             # print("HumanMessage(content= " + v + ")")
             stss.messages.append(HumanMessage(content=v))
@@ -86,8 +86,8 @@ def ExtractChatData(chatDict):
             # print("AIMessage(content= " + v + ")")
             stss.messages.append(AIMessage(content=v))
 
-    stss.chatTitle = chatDict["ChatTitle"]
-    stss.chatID = chatDict["ChatID"]
+    stss.chatTitle = RetrievedChat["ChatTitle"]
+    stss.chatID = RetrievedChat["ChatID"]
 
 
 # NewUserSim()  # TODO:  Take out
@@ -133,9 +133,9 @@ else:
         if len(docsList) > 0:  # there are one or more chats persisted for this userid
             for doc in docsList:
                 stss.titlesList.append(doc["ChatTitle"])
-            stss.chatDict = get_latest_ChatRecord(stss.userID)
+            RetrievedChat = get_latest_ChatRecord(stss.userID)
             # TODO Extract messages from chatDict
-            ExtractChatData(stss.chatDict)
+            ExtractChatData(RetrievedChat)
             stss.newChatSwitch = False
         else:  # no chats to retrieve, so init state vars as needed
             NewChat()
@@ -201,13 +201,13 @@ for i, msg in enumerate(messages[1:]):
         message(msg.content, is_user=False, key=str(i) + "_ai")
 
 
-# if DEBUG:
-st.write(
-    "newChatSwitch = "
-    + str(stss.newChatSwitch)
-    + ". -----len(Messages) = "
-    + str(len(messages))
-)
+if DEBUG:
+    st.write(
+        "newChatSwitch = "
+        + str(stss.newChatSwitch)
+        + ". -----len(Messages) = "
+        + str(len(messages))
+    )
 
 # Create a new chat with new title.  Occurs after first chat turn so that title can be created.
 if (
@@ -225,6 +225,7 @@ if (
     )
     stss.chatTitle = chatTitle.content
     stss.titlesList.append(stss.chatTitle)
+    st.experimental_rerun
 
     buildChatDict(messages)
 

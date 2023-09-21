@@ -53,7 +53,7 @@ def update_session_state_by_user(userID, fieldName, newVal):  ##TODO finish this
 
 def upsertChatContent(chat_id, chatDict):
     query = {"ChatID": chat_id}
-    return db.chats.update_one(query, {"$set": {"chat_dict": chatDict}}, upsert=True)
+    return db.chats.update_one(query, {"$set": {"Content": chatDict}}, upsert=True)
 
 
 def save_new_chat(userID, chatID, chatTitle, chatContent):
